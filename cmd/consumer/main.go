@@ -22,12 +22,22 @@ func main() {
 	}
 	defer client.Close()
 
-	messageBus, err := client.Consume("customers_created", "email-service", false)
+
+
+    var blocking chan struct{}
+
+    queue, err := client.CreateQueue("", true, true)
+    if err != nil {
+        panic(err)
+    }
+
+    if err := client.CreateBinding(queue.Name, "", "customer_events"); err != nil {
+        panic(err)
+    }
+	messageBus, err := client.Consume(queue.Name, "email-service", false)
 	if err != nil {
 		panic(err)
 	}
-
-    var blocking chan struct{}
 
     // set a timeout for 15 secs
     ctx := context.Background()
